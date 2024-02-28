@@ -1,5 +1,5 @@
 local simplevm = require "src.Simplevm"
-local compile = require "src.utils.bytecodeutils"
+local compile = require "assembler.utils.bytecodeutils"
 
 function parse_args()
     

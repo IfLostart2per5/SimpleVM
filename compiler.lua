@@ -1,5 +1,5 @@
-local assembler = require"assembler"
-local bytecodeutils = require("src.utils.bytecodeutils")
+local assembler = require"assembler.assembler"
+local bytecodeutils = require("assembler.utils.bytecodeutils")
 function parse_args()
     local args = {file={}, type="lua"}
 
