@@ -1,6 +1,6 @@
 local struct = require "libraries.struct"
 
-function linklabels(bytecode)
+function linklabels(bytecode, intformat)
 
     local labels = {}
     local labelrefs = {}
@@ -24,7 +24,7 @@ function linklabels(bytecode)
 
                 table.insert(labelrefs, {name, #linked - nlabeldefs})
                 
-                for j = 1, 4 do
+                for j = 1, intformat do
                     table.insert(linked, 255)
                 end
             end
@@ -62,8 +62,8 @@ function linklabels(bytecode)
             error('attempt to use undefined label "'..name..'"')
         end
 
-        local packed = struct.pack(">i", index)
-        for j = 1, 4 do
+        local packed = struct.pack((intformat == 4) and ">i" or ">l", index)
+        for j = 1, intformat do
             linked[idx + j] = packed:byte(j, j)
             
         end
@@ -78,14 +78,14 @@ function compile(bytecode)
             
             if byte.tag == "int" then
                 local n = byte[1]
-                local packed = struct.pack('>i', n)
+                local packed = struct.pack(byte.format, n)
 
                 for j = 1, #packed do
                     table.insert(compiled, packed:byte(j, j))
                 end
             elseif byte.tag == "float" then
                 local n = byte[1]
-                local packed = struct.pack('d', n)
+                local packed = struct.pack(byte.format, n)
 
                 for j = 1, #packed do
                     table.insert(compiled, packed:byte(j, j))
@@ -93,7 +93,7 @@ function compile(bytecode)
             elseif byte.tag == "string" then
                 local s = byte[1]
                 for j = 1, #s do
-                    table.insert(compiled, byte:byte(j))
+                    table.insert(compiled, s:byte(j))
                 end
                 table.insert(compiled, 0)
             else
@@ -109,7 +109,14 @@ function compile(bytecode)
         ::continue::
     end
 
-
+    for i, byte in ipairs(compiled) do
+        io.write('['..i.."] ")
+        if type(byte) == "table" then
+            print(byte.tag.."{"..byte[1]..'}')
+        else
+            print(byte)
+        end
+    end
     return compiled
 end
 

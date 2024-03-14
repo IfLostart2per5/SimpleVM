@@ -8,8 +8,8 @@
             "type": "lua",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/compiler.lua",
-            "arg": ["examples\\teste.ss", "-o", "examples\\teste.sc"],
+            "program": "${workspaceFolder}/src/services/memtest.lua",
+            //"arg": ["run", "examples\\array.sc"],
             "luaVersion": "luajit"
         }
     ]

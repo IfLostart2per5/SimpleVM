@@ -1,6 +1,9 @@
 -- tabela de acoes pra formosa simplevm
 local Code =  require "src.enums.Code"
 local bit = require "bit"
+local ffi = require "ffi"
+local utf8 = require "libraries.utf8"
+local struct = require "libraries.struct"
 
 local cases = {
     [Code.ICOPY_1] = function(self)
@@ -406,278 +409,154 @@ local cases = {
     [Code.FMOD_8] = function(self)
       self.regs[8] = self.regs[8] % self:getfloat()
     end,
-
-
-    [Code.EQ] = function(self)
-      local x = self:consomeByte()
-      local y = self:consomeByte()
-      
-      self.regs[x] = (self.regs[x] == self.regs[y]) and 1 or 0
+    [Code.EQ_1] = function(self)
+      self.regs[1] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_1] = function(self)
-      self.regs[1] = (self.regs[1] == self:getint()) and 1 or 0
+    [Code.EQ_2] = function(self)
+      self.regs[2] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_2] = function(self)
-      self.regs[2] = (self.regs[2] == self:getint()) and 1 or 0
+    [Code.EQ_3] = function(self)
+      self.regs[3] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_3] = function(self)
-      self.regs[3] = (self.regs[3] == self:getint()) and 1 or 0
+    [Code.EQ_4] = function(self)
+      self.regs[4] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_4] = function(self)
-      self.regs[4] = (self.regs[4] == self:getint()) and 1 or 0
+    [Code.EQ_5] = function(self)
+      self.regs[5] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_5] = function(self)
-      self.regs[5] = (self.regs[5] == self:getint()) and 1 or 0
+    [Code.EQ_6] = function(self)
+      self.regs[6] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_6] = function(self)
-      self.regs[6] = (self.regs[6] == self:getint()) and 1 or 0
+    [Code.EQ_7] = function(self)
+      self.regs[7] = self.flags.equality and 1 or 0
     end,
-    [Code.IEQ_7] = function(self)
-      self.regs[7] = (self.regs[7] == self:getint()) and 1 or 0
-    end,
-    [Code.IEQ_8] = function(self)
-      self.regs[8] = (self.regs[8] == self:getint()) and 1 or 0
-    end,
-    [Code.FEQ_1] = function(self)
-      self.regs[1] = (self.regs[1] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_2] = function(self)
-      self.regs[2] = (self.regs[2] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_3] = function(self)
-      self.regs[3] = (self.regs[3] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_4] = function(self)
-      self.regs[4] = (self.regs[4] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_5] = function(self)
-      self.regs[5] = (self.regs[5] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_6] = function(self)
-      self.regs[6] = (self.regs[6] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_7] = function(self)
-      self.regs[7] = (self.regs[7] == self:getfloat()) and 1 or 0
-    end,
-    [Code.FEQ_8] = function(self)
-      self.regs[8] = (self.regs[8] == self:getfloat()) and 1 or 0
+    [Code.EQ_8] = function(self)
+      self.regs[8] = self.flags.equality and 1 or 0
     end,
 
-    [Code.SEQ_1] = function(self)
-      self.regs[1] = (self.regs[1] == self:getstring()) and 1 or 0
+    [Code.NE_1] = function(self)
+      self.regs[1] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_2] = function(self)
-      self.regs[2] = (self.regs[2] == self:getstring()) and 1 or 0
+    [Code.NE_2] = function(self)
+      self.regs[2] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_3] = function(self)
-      self.regs[3] = (self.regs[3] == self:getstring()) and 1 or 0
+    [Code.NE_3] = function(self)
+      self.regs[3] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_4] = function(self)
-      self.regs[4] = (self.regs[4] == self:getstring()) and 1 or 0
+    [Code.NE_4] = function(self)
+      self.regs[4] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_5] = function(self)
-      self.regs[5] = (self.regs[5] == self:getstring()) and 1 or 0
+    [Code.NE_5] = function(self)
+      self.regs[5] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_6] = function(self)
-      self.regs[6] = (self.regs[6] == self:getstring()) and 1 or 0
+    [Code.NE_6] = function(self)
+      self.regs[6] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_7] = function(self)
-      self.regs[7] = (self.regs[7] == self:getstring()) and 1 or 0
+    [Code.NE_7] = function(self)
+      self.regs[7] = self.flags.equality and 0 or 1
     end,
-    [Code.SEQ_8] = function(self)
-      self.regs[8] = (self.regs[8] == self:getstring()) and 1 or 0
-    end,
-    [Code.NE] = function(self)
-      local x = self:consomeByte()
-      local y = self:consomeByte()
-      
-      self.regs[x] = (self.regs[x] ~= self.regs[y]) and 1 or 0
-    end,
-    [Code.INE_1] = function(self)
-      self.regs[1] = (self.regs[1] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_2] = function(self)
-      self.regs[2] = (self.regs[2] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_3] = function(self)
-      self.regs[3] = (self.regs[3] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_4] = function(self)
-      self.regs[4] = (self.regs[4] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_5] = function(self)
-      self.regs[5] = (self.regs[5] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_6] = function(self)
-      self.regs[6] = (self.regs[6] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_7] = function(self)
-      self.regs[7] = (self.regs[7] ~= self:getint()) and 1 or 0
-    end,
-    [Code.INE_8] = function(self)
-      self.regs[8] = (self.regs[8] ~= self:getint()) and 1 or 0
+    [Code.NE_8] = function(self)
+      self.regs[8] = self.flags.equality and 0 or 1
     end,
 
-    [Code.FNE_1] = function(self)
-      self.regs[1] = (self.regs[1] ~= self:getfloat()) and 1 or 0
+    [Code.GT_1] = function(self)
+      self.regs[1] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_2] = function(self)
-      self.regs[2] = (self.regs[2] ~= self:getfloat()) and 1 or 0
+    [Code.GT_2] = function(self)
+      self.regs[2] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_3] = function(self)
-      self.regs[3] = (self.regs[3] ~= self:getfloat()) and 1 or 0
+    [Code.GT_3] = function(self)
+      self.regs[3] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_4] = function(self)
-      self.regs[4] = (self.regs[4] ~= self:getfloat()) and 1 or 0
+    [Code.GT_4] = function(self)
+      self.regs[4] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_5] = function(self)
-      self.regs[5] = (self.regs[5] ~= self:getfloat()) and 1 or 0
+    [Code.GT_5] = function(self)
+      self.regs[5] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_6] = function(self)
-      self.regs[6] = (self.regs[6] ~= self:getfloat()) and 1 or 0
+    [Code.GT_6] = function(self)
+      self.regs[6] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_7] = function(self)
-      self.regs[7] = (self.regs[7] ~= self:getfloat()) and 1 or 0
+    [Code.GT_7] = function(self)
+      self.regs[7] = self.flags.greater and 1 or 0
     end,
-    [Code.FNE_8] = function(self)
-      self.regs[8] = (self.regs[8] ~= self:getfloat()) and 1 or 0
-    end,
-
-    [Code.SNE_1] = function(self)
-      self.regs[1] = (self.regs[1] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_2] = function(self)
-      self.regs[2] = (self.regs[2] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_3] = function(self)
-      self.regs[3] = (self.regs[3] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_4] = function(self)
-      self.regs[4] = (self.regs[4] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_5] = function(self)
-      self.regs[5] = (self.regs[5] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_6] = function(self)
-      self.regs[6] = (self.regs[6] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_7] = function(self)
-      self.regs[7] = (self.regs[7] ~= self:getstring()) and 1 or 0
-    end,
-    [Code.SNE_8] = function(self)
-      self.regs[8] = (self.regs[8] ~= self:getstring()) and 1 or 0
+    [Code.GT_8] = function(self)
+      self.regs[1] = self.flags.greater and 1 or 0
     end,
 
-    [Code.GT] = function(self)
-      local x = self:consomeByte()
-      local y = self:consomeByte()
-      
-      self.regs[x] = (self.regs[x] > self.regs[y]) and 1 or 0
+    [Code.LT_1] = function(self)
+      self.regs[1] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_1] = function(self)
-      self.regs[1] = (self.regs[1] > self:getint()) and 1 or 0
+    [Code.LT_2] = function(self)
+      self.regs[2] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_2] = function(self)
-      self.regs[2] = (self.regs[2] > self:getint()) and 1 or 0
+    [Code.LT_3] = function(self)
+      self.regs[3] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_3] = function(self)
-      self.regs[3] = (self.regs[3] > self:getint()) and 1 or 0
+    [Code.LT_4] = function(self)
+      self.regs[4] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_4] = function(self)
-      self.regs[4] = (self.regs[4] > self:getint()) and 1 or 0
+    [Code.LT_5] = function(self)
+      self.regs[5] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_5] = function(self)
-      self.regs[5] = (self.regs[5] > self:getint()) and 1 or 0
+    [Code.LT_6] = function(self)
+      self.regs[6] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_6] = function(self)
-      self.regs[6] = (self.regs[6] > self:getint()) and 1 or 0
+    [Code.LT_7] = function(self)
+      self.regs[7] = self.flags.less and 1 or 0
     end,
-    [Code.IGT_7] = function(self)
-      self.regs[7] = (self.regs[7] > self:getint()) and 1 or 0
-    end,
-    [Code.IGT_8] = function(self)
-      self.regs[8] = (self.regs[8] > self:getint()) and 1 or 0
+    [Code.LT_8] = function(self)
+      self.regs[1] = self.flags.less and 1 or 0
     end,
 
-    [Code.FGT_1] = function(self)
-      self.regs[1] = (self.regs[1] > self:getfloat()) and 1 or 0
+    [Code.GE_1] = function(self)
+      self.regs[1] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_2] = function(self)
-      self.regs[2] = (self.regs[2] > self:getfloat()) and 1 or 0
+    [Code.GE_2] = function(self)
+      self.regs[2] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_3] = function(self)
-      self.regs[3] = (self.regs[3] > self:getfloat()) and 1 or 0
+    [Code.GE_3] = function(self)
+      self.regs[3] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_4] = function(self)
-      self.regs[4] = (self.regs[4] > self:getfloat()) and 1 or 0
+    [Code.GE_4] = function(self)
+      self.regs[4] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_5] = function(self)
-      self.regs[5] = (self.regs[5] > self:getfloat()) and 1 or 0
+    [Code.GE_5] = function(self)
+      self.regs[5] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_6] = function(self)
-      self.regs[6] = (self.regs[6] > self:getfloat()) and 1 or 0
+    [Code.GE_6] = function(self)
+      self.regs[6] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_7] = function(self)
-      self.regs[7] = (self.regs[7] > self:getfloat()) and 1 or 0
+    [Code.GE_7] = function(self)
+      self.regs[7] = (self.greater or self.equality) and 1 or 0
     end,
-    [Code.FGT_8] = function(self)
-      self.regs[8] = (self.regs[8] > self:getfloat()) and 1 or 0
-    end,
-
-    [Code.LT] = function(self)
-      local x = self:consomeByte()
-      local y = self:consomeByte()
-      
-      self.regs[x] = (self.regs[x] < self.regs[y]) and 1 or 0
-    end,
-    [Code.ILT_1] = function(self)
-      self.regs[1] = (self.regs[1] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_2] = function(self)
-      self.regs[2] = (self.regs[2] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_3] = function(self)
-      self.regs[3] = (self.regs[3] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_4] = function(self)
-      self.regs[4] = (self.regs[4] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_5] = function(self)
-      self.regs[5] = (self.regs[5] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_6] = function(self)
-      self.regs[6] = (self.regs[6] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_7] = function(self)
-      self.regs[7] = (self.regs[7] < self:getint()) and 1 or 0
-    end,
-    [Code.ILT_8] = function(self)
-      self.regs[8] = (self.regs[8] < self:getint()) and 1 or 0
+    [Code.GE_8] = function(self)
+      self.regs[8] = (self.greater or self.equality) and 1 or 0
     end,
 
-    [Code.FLT_1] = function(self)
-      self.regs[1] = (self.regs[1] < self:getfloat()) and 1 or 0
+    [Code.LE_1] = function(self)
+      self.regs[1] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_2] = function(self)
-      self.regs[2] = (self.regs[2] < self:getfloat()) and 1 or 0
+    [Code.LE_2] = function(self)
+      self.regs[2] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_3] = function(self)
-      self.regs[3] = (self.regs[3] < self:getfloat()) and 1 or 0
+    [Code.LE_3] = function(self)
+      self.regs[3] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_4] = function(self)
-      self.regs[4] = (self.regs[4] < self:getfloat()) and 1 or 0
+    [Code.LE_4] = function(self)
+      self.regs[4] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_5] = function(self)
-      self.regs[5] = (self.regs[5] < self:getfloat()) and 1 or 0
+    [Code.LE_5] = function(self)
+      self.regs[5] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_6] = function(self)
-      self.regs[6] = (self.regs[6] < self:getfloat()) and 1 or 0
+    [Code.LE_6] = function(self)
+      self.regs[6] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_7] = function(self)
-      self.regs[7] = (self.regs[7] < self:getfloat()) and 1 or 0
+    [Code.LE_7] = function(self)
+      self.regs[7] = (self.less or self.equality) and 1 or 0
     end,
-    [Code.FLT_8] = function(self)
-      self.regs[8] = (self.regs[8] < self:getfloat()) and 1 or 0
+    [Code.LE_8] = function(self)
+      self.regs[8] = (self.less or self.equality) and 1 or 0
     end,
 
     [Code.AND] = function(self)
@@ -746,10 +625,6 @@ local cases = {
       local reg = self:consomeByte()
 
       self.regs[reg] = bit.bnot(self.regs[reg])
-    end,
-    [Code.LOADNAN] = function(self)
-      local reg = self:consomeByte()
-      self.regs[reg] = 0 / 0
     end,
     [Code.COMPARE] = function(self)
       -- resetando as flags pra evitar problemas
@@ -864,6 +739,7 @@ local cases = {
       self.index = index
     end,
     [Code.RETURN] = function(self)
+     
       self.index = self.retlocals[#self.retlocals] --or self.index + 1
       table.remove(self.retlocals, #self.retlocals)
     end,
@@ -871,7 +747,7 @@ local cases = {
     [Code.LOADSERVICE] = function(self)
       local serviceindex = self:getint()
       if not self.services[serviceindex] then
-        self:error("Service not found.")
+        self:error("Service "..serviceindex.." not found.")
       end
 
       self.service = self.services[serviceindex]
@@ -879,7 +755,7 @@ local cases = {
     [Code.INVOKESERVICE] = function(self)
       local subsservice = self.regs[1]
       local args = {self.regs[2], self.regs[3], self.regs[4], self.regs[5]}
-
+      
       local status, err = self.service:invoke(subsservice, args, self.regs)
 
       if status == 1 then
@@ -887,8 +763,9 @@ local cases = {
       end
     end,
     [Code.EXIT] = function(self)
-      local status = self.refs[8]
+      local status = self.regs[1]
 
+      --print('exitting', status)
       os.exit(status)
     end,
     [Code.JUMP_IF_EQ] = function(self)
@@ -929,6 +806,132 @@ local cases = {
     end,
     [Code.JUMP] = function(self)
       self.index = self:getint()
+    end,
+    [Code.IGETPTR] = function(self)
+      local mode = self.integersize
+      local dest = self:consomeByte()
+      local orig = self:consomeByte()
+
+      local address = self.regs[orig]
+      local adr = ffi.new("intptr_t", address)
+      local ptr
+
+      if mode == 4 then
+        ptr = ffi.cast("int*", adr)
+      else
+        ptr = ffi.cast("long*", adr)
+      end
+      if not ptr then
+        self:error("attempt to access null pointer.")
+      end
+
+      
+      self.regs[dest] = ptr[0]
+    end,
+    [Code.FGETPTR] = function(self)
+      local mode = self.floatsize
+      local dest = self:consomeByte()
+      local orig = self:consomeByte()
+
+      local address = self.regs[orig]
+      local adr = ffi.new("intptr_t", address)
+      local ptr
+
+      if mode == 4 then
+        ptr = ffi.cast("float*", adr)
+      else
+        ptr = ffi.cast("double*", adr)
+      end
+      if not ptr then
+        self:error("attempt to access null pointer.")
+      end
+
+      
+      self.regs[dest] = ptr[0]
+    end,
+    [Code.SGETPTR] = function(self)
+      local dest = self:consomeByte()
+      local orig = self:consomeByte()
+      local sizereg = self:consomeByte()
+      
+      
+      local size = self.regs[sizereg]
+
+
+
+      local adr = ffi.new("intptr_t", self.regs[orig])
+      local ptr = ffi.cast("char*", adr)
+
+      if not ptr then
+        self:error("attempt to access null pointer.")
+      end
+      
+      self.regs[dest] = ffi.string(ptr, size)
+    end,
+    [Code.ISETPTR] = function(self)
+      local mode = self.integersize
+      local dest = self:consomeByte()
+      local orig = self:consomeByte()
+
+      local value = self.regs[orig]
+      self:assert(type(value) == "number" and math.floor(value) == value, "Expected integer")
+      local adr = ffi.new("intptr_t", self.regs[dest])
+      local ptr
+
+      if mode == 4 then
+        ptr = ffi.cast("int*", adr)
+      else
+        ptr = ffi.cast("long*", adr)
+      end
+
+      if not ptr then
+        self:error("attempt to access null pointer.")
+      end
+
+      ptr[0] = value
+    end,
+    [Code.FSETPTR] = function(self)
+      local mode = self.floatsize
+      local dest = self:consomeByte()
+      local orig = self:consomeByte()
+
+      local value = self.regs[orig]
+      local adr = ffi.new("intptr_t", self.regs[dest])
+      local ptr
+
+      if mode == 4 then
+        ptr = ffi.cast("float*", adr)
+      else
+        ptr = ffi.cast("double*", adr)
+      end
+
+      if not ptr then
+        self:error("attempt to access null pointer.")
+      end
+      ptr[0] = value
+    end,
+    [Code.SSETPTR] = function(self)
+      local dest = self:consomeByte()
+      local orig = self:consomeByte()
+      local sizereg = self:consomeByte()
+
+      local str = self.regs[orig]
+      local size = self.regs[sizereg]
+
+      if size == 0 then
+        return
+      end
+      local adr = ffi.new("intptr_t", dest)
+      local ptr = ffi.cast("char*", adr)
+
+      if not ptr then
+        self:error("attempt to access null pointer.")
+      end
+
+      for i = 1, size do
+        ptr[i - 1] = str:byte(i, i)
+      end
+
     end
   }
 

@@ -1,5 +1,4 @@
 Code = {
-  "END",
   --instrucoes de copia
   --  aqui vai seguir um padrao, onde o numero definido K representa o registrador e T o tipo de dado: TCOPY_K (T pode ser I(nteger), F(loat), e S(tring))
   --  tambem, tera a instrucao de copia entre registradores, representadas por COPY, onde tera dois operandos: K e Y, onde K é o destino e Y a origem
@@ -133,100 +132,60 @@ Code = {
   "FMOD_8",
 
 
-  --Operadores relacionais: a mesma coisa
-  "EQ",
-  "IEQ_1",
-  "IEQ_2",
-  "IEQ_3",
-  "IEQ_4",
-  "IEQ_5",
-  "IEQ_6",
-  "IEQ_7",
-  "IEQ_8",
+  --Operadores relacionais: eles se baseiam nas flags de estado atuais da VM para passar o resultado pra um registrador
+   "EQ_1",
+   "EQ_2",
+   "EQ_3",
+   "EQ_4",
+   "EQ_5",
+   "EQ_6",
+   "EQ_7",
+   "EQ_8",
 
-  "FEQ_1",
-  "FEQ_2",
-  "FEQ_3",
-  "FEQ_4",
-  "FEQ_5",
-  "FEQ_6",
-  "FEQ_7",
-  "FEQ_8",
+   "NE_1",
+   "NE_2",
+   "NE_3",
+   "NE_4",
+   "NE_5",
+   "NE_6",
+   "NE_7",
+   "NE_8",
 
-  "SEQ_1",
-  "SEQ_2",
-  "SEQ_3",
-  "SEQ_4",
-  "SEQ_5",
-  "SEQ_6",
-  "SEQ_7",
-  "SEQ_8",
+   "GT_1",
+   "GT_2",
+   "GT_3",
+   "GT_4",
+   "GT_5",
+   "GT_6",
+   "GT_7",
+   "GT_8",
 
-  "NE",
-  "INE_1",
-  "INE_2",
-  "INE_3",
-  "INE_4",
-  "INE_5",
-  "INE_6",
-  "INE_7",
-  "INE_8",
-  
-  "FNE_1",
-  "FNE_2",
-  "FNE_3",
-  "FNE_4",
-  "FNE_5",
-  "FNE_6",
-  "FNE_7",
-  "FNE_8",
+   "LT_1",
+   "LT_2",
+   "LT_3",
+   "LT_4",
+   "LT_5",
+   "LT_6",
+   "LT_7",
+   "LT_8",
 
-  "SNE_1",
-  "SNE_2",
-  "SNE_3",
-  "SNE_4",
-  "SNE_5",
-  "SNE_6",
-  "SNE_7",
-  "SNE_8",
+   "GE_1",
+   "GE_2",
+   "GE_3",
+   "GE_4",
+   "GE_5",
+   "GE_6",
+   "GE_7",
+   "GE_8",
 
-  "GT",
-  "IGT_1",
-  "IGT_2",
-  "IGT_3",
-  "IGT_4",
-  "IGT_5",
-  "IGT_6",
-  "IGT_7",
-  "IGT_8",
-
-  "FGT_1",
-  "FGT_2",
-  "FGT_3",
-  "FGT_4",
-  "FGT_5",
-  "FGT_6",
-  "FGT_7",
-  "FGT_8",
-
-  "LT",
-  "ILT_1",
-  "ILT_2",
-  "ILT_3",
-  "ILT_4",
-  "ILT_5",
-  "ILT_6",
-  "ILT_7",
-  "ILT_8",
-
-  "FLT_1",
-  "FLT_2",
-  "FLT_3",
-  "FLT_4",
-  "FLT_5",
-  "FLT_6",
-  "FLT_7",
-  "FLT_8",
+   "LE_1",
+   "LE_2",
+   "LE_3",
+   "LE_4",
+   "LE_5",
+   "LE_6",
+   "LE_7",
+   "LE_8",
 
   -- operadores bitwise: quase a mesma coisa, exceto q nao aceitam outros tipos de dados alem de inteiros
   --, logo, nao tera um T antes do nome da instrução. (assumindo que o valor seguinte é inteiro)
@@ -253,9 +212,6 @@ Code = {
 
   --not simplesmente recebe como operando o registrador alvo, e nao dois, logo, so tem uma unica instrucao pra ele
   "NOT",
-
-  --LOADNAN carrega o valor especial NaN no registrador especificado (atualmente, ele faz um 0 / 0 pra obter esse valor)
-  "LOADNAN",
   
   --especial: COMPARE
   --  esse faria o mesmo que outras instrucoes relacionais fariam, com as diferenças de:
@@ -337,7 +293,21 @@ Code = {
   "JUMP_IF_NGE",
   "JUMP_IF_NLE",
 
-  "JUMP"
+  "JUMP",
+
+  --Manipulação de memoria:
+  --  aqui temos dois tipos de instrucoes: TGETPTR e TSETPTR, onde T representa um tipo de dados da vm, e cada um recebe os seguintes operandos:
+
+  --    TGETPTR - recebe o registrador de destino (o registrador onde o valor sera armazenado) e o valor de origem (onde contem o endereço do valor)
+  --    TSETPTR - recebe o registrador onde contem o endereço a ser definido, e o registrador onde contem o valor
+  --nota: SGETPTR e SSETPTR receberao outro terceiro registrador como operando indicando o tamanho da string
+  "IGETPTR",
+  "FGETPTR",
+  "SGETPTR",
+
+  "ISETPTR",
+  "FSETPTR",
+  "SSETPTR"
 }
 
 return Code

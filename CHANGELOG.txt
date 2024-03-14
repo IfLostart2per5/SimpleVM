@@ -1,0 +1,15 @@
+changelog da simplevm
+nova versao: 0.0.2alfa
+
+adições:
+  Um novo serviço de manipulação de memoria MemoryService;
+  novas instrucoes igetptr, fgetptr, sgetptr, isetptr, fsetptr e ssetptr;
+
+alterações:
+  alteração significativa nas instrucoes de comparação simples (agora elas dependem fortemente da instrucao compare)
+
+remoções:
+  remoçao da instrucao end (sera utilizada exit em seu lugar)
+
+nota:
+  exemplos de codigo assembly da VM serao reescritos.

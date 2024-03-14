@@ -12,13 +12,46 @@ function parse_args()
 
     args.cmd = command
     if command == 'run' then
-        local file = arg[i]
+        args.isize = 32
+        args.fsize = 64
+        while i <= #arg do
+            local a = arg[i]
+            if a == "-isize" or a == "--integersize" then
+                local size = arg[i + 1]
+                if not size then
+                    error("no specified integer size")
+                end
+                local nsize = tonumber(size)
+                if not nsize then
+                    error("unable to parse size")
+                end
 
-        if not file then
-            error("No input file given to run")
+                args.isize = nsize
+                i = i + 1
+            elseif a == "-fsize" or a == "--floatsize" then
+                local size = arg[i + 1]
+                if not size then
+                    error("no specified float size")
+                end
+                local nsize = tonumber(size)
+                if not nsize then
+                    error("unable to parse size")
+                end
+
+                args.fsize = nsize
+                i = i + 1
+            
+
+            
+            else
+                if args.target then
+                    error('already specified target')
+                end
+
+                args.target = a 
+            end
+            i = i + 1
         end
-
-        args.target = file
     else
         error('Unknown command "'..command..'".')
     end
@@ -26,9 +59,10 @@ function parse_args()
     return args
 end
 
-function run(file)
+function run(file, intsize, floatsize)
     local vm = simplevm:new()
-
+    vm:setIntegersize(intsize / 8)
+    vm:setFloatsize(floatsize / 8)
     local version, bytecode = compile.read(file)
     --[[
     do
@@ -44,17 +78,15 @@ function run(file)
     end
 
     vm:put(bytecode)
-    local i = os.clock()
     vm:start()
-    local e = os.clock()
-    print("\ntempo", e - i)
+    
 end
 
 function main()
     local args = parse_args()
 
     if args.cmd == 'run' then
-        run(args.target)
+        run(args.target, args.isize, args.fsize)
     end
 end
 

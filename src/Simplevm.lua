@@ -2,6 +2,7 @@ local Code = require "src.enums.Code"
 local Actions = require "src.Actions"
 local BaseService = require "src.services.BaseService"
 local IoService = require "src.services.IoService"
+local MemoryService = require "src.services.MemoryService"
 local struct = require "libraries.struct"
 local copy = table.copy or function(tbl)
     local c = {}
@@ -37,7 +38,7 @@ function simplevm:new()
         regs = {nil, nil, nil, nil, nil, nil, nil, nil},
         retlocals = {},
         frames = {{locals = {}}},
-        services = {IoService},
+        services = {IoService, MemoryService},
         service = nil,
         index = 1,
         integersize = 4,
@@ -73,10 +74,12 @@ function simplevm:put(instructions)
 end
 
 function simplevm:start()
-    while self:currentByte() ~= Code.END do
+    --vai aguardar por uma instrucao de saida (EXIT)
+    while true do
         if self.paused then
             return
         end
+        
         self:exec()
     end
 end
