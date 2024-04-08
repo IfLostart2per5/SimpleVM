@@ -79,6 +79,10 @@ function IoService.subsservices:write(args)
         return 1, "Attempt to write in a non-writeable file"
     end
 
+    if file.file == io.stdout or file.file == io.stderr then
+        file.file:write(content)
+        return 0
+    end
     if file.binary == 1 then
         if type(content) == "string" then
             file.file:write(content)

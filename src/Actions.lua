@@ -654,7 +654,7 @@ local cases = {
     end,
 
     [Code.NEWFRAME] = function(self)
-      table.insert(self.frames, {locals={}})
+      table.insert(self.frames, {})
       self.frame = self.frames[#self.frames]
     end,
     [Code.POPFRAME] = function(self)
@@ -663,62 +663,62 @@ local cases = {
     end,
     
     [Code.ISTORE] = function(self)
-      table.insert(self.frame.locals, self:getint())
+      table.insert(self.frame, self:getint())
     end,
     [Code.FSTORE] = function(self)
-      table.insert(self.frame.locals, self:getfloat())
+      table.insert(self.frame, self:getfloat())
     end,
     [Code.SSTORE] = function(self)
-      table.insert(self.frame.locals, self:getstring())
+      table.insert(self.frame, self:getstring())
     end,
     [Code.STORE_1] = function(self)
-      table.insert(self.frame.locals, self.regs[1])
+      table.insert(self.frame, self.regs[1])
     end,
     [Code.STORE_2] = function(self)
-      table.insert(self.frame.locals, self.regs[2])
+      table.insert(self.frame, self.regs[2])
     end,
     [Code.STORE_3] = function(self)
-      table.insert(self.frame.locals, self.regs[3])
+      table.insert(self.frame, self.regs[3])
     end,
     [Code.STORE_4] = function(self)
-      table.insert(self.frame.locals, self.regs[4])
+      table.insert(self.frame, self.regs[4])
     end,
     [Code.STORE_5] = function(self)
-      table.insert(self.frame.locals, self.regs[5])
+      table.insert(self.frame, self.regs[5])
     end,
     [Code.STORE_6] = function(self)
-      table.insert(self.frame.locals, self.regs[6])
+      table.insert(self.frame, self.regs[6])
     end,
     [Code.STORE_7] = function(self)
-      table.insert(self.frame.locals, self.regs[7])
+      table.insert(self.frame, self.regs[7])
     end,
     [Code.STORE_8] = function(self)
-      table.insert(self.frame.locals, self.regs[8])
+      table.insert(self.frame, self.regs[8])
     end,
 
     [Code.LOAD_1] = function(self)
-      self.regs[1] = self.frame.locals[self:getint()]
+      self.regs[1] = self.frame[self:getint()]
     end,
     [Code.LOAD_2] = function(self)
-      self.regs[2] = self.frame.locals[self:getint()]
+      self.regs[2] = self.frame[self:getint()]
     end,
     [Code.LOAD_3] = function(self)
-      self.regs[3] = self.frame.locals[self:getint()]
+      self.regs[3] = self.frame[self:getint()]
     end,
     [Code.LOAD_4] = function(self)
-      self.regs[4] = self.frame.locals[self:getint()]
+      self.regs[4] = self.frame[self:getint()]
     end,
     [Code.LOAD_5] = function(self)
-      self.regs[5] = self.frame.locals[self:getint()]
+      self.regs[5] = self.frame[self:getint()]
     end,
     [Code.LOAD_6] = function(self)
-      self.regs[6] = self.frame.locals[self:getint()]
+      self.regs[6] = self.frame[self:getint()]
     end,
     [Code.LOAD_7] = function(self)
-      self.regs[7] = self.frame.locals[self:getint()]
+      self.regs[7] = self.frame[self:getint()]
     end,
     [Code.LOAD_8] = function(self)
-      self.regs[8] = self.frame.locals[self:getint()]
+      self.regs[8] = self.frame[self:getint()]
     end,
 
     [Code.CALL] = function(self)
@@ -733,10 +733,9 @@ local cases = {
       local index = self.regs[reg]
 
       self:assert(type(index) == "number", "Non-number point given to call.")
-      self:assert(index == math.floor(index), "Non-integer point given to call.")
-      self:assert(index >= 1 and index <= #self.instructions, "Attempt to call a invalid point.")
+      
 
-      self.index = index
+      self.index = math.floor(index)
     end,
     [Code.RETURN] = function(self)
      

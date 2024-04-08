@@ -41,3 +41,6 @@ luac.out
 
 # assembly da simplevm compilado
 *.sc
+
+# coisas do vscode
+.vscode

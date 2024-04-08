@@ -16,7 +16,6 @@ function Assembler:new()
         bytecode = nil,
         start=1,
         current=1,
-        labels=nil,
         intformat=">i",
         floatformat="d"
     }
@@ -31,10 +30,12 @@ function Assembler:assemble(code)
     self.src = code 
     self.bytecode = {}
 
-    self.labels = {}
     while not self:iseof() do
         self.start = self.current
-        self:assemblypiece()
+        local status = self:assemblypiece()
+        if status then
+            break
+        end
     end
     local compiled = bytecodeutils.compile(self.bytecode)
 
@@ -61,7 +62,7 @@ function Assembler:assemblypiece()
         if id == "usei64" then
             self.intformat = ">l"
         elseif id == "usei32" then
-            self.intformat = ">i"
+            self.intformat = "i"
         elseif id == "usef32" then
             self.floatformat = "f"
         elseif id == "usef64" then
@@ -118,6 +119,8 @@ function Assembler:assemblypiece()
         else
             error("Invalid signal indicator.")
         end
+    elseif char == "\0" then
+        return 1
     else
         error('Unknown char "'..char..'" at '..self.start)
     end
@@ -130,9 +133,6 @@ function Assembler:getchar()
 end
 
 function Assembler:peekchar()
-    if self.current > #self.src then
-        error(self.current.." > "..#self.src)
-    end
     return self.src:sub(self.current, self.current)
 end
 
@@ -150,13 +150,10 @@ function Assembler:parseid()
             error('Cannot name a label with a instruction.')
         end
         self:getchar()
-        self.labels[id] = id
         table.insert(self.bytecode, {tag='labeldef', id})
     else
         if Code[id:upper()] then
             table.insert(self.bytecode, Code[id:upper()])
-        elseif self.labels[id] then
-            table.insert(self.bytecode, {tag='label', id})
         elseif id:match("r[1-8]") then
             table.insert(self.bytecode, tonumber(id:sub(2, 2)))
         else

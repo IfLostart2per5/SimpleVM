@@ -3,7 +3,14 @@ local Actions = require "src.Actions"
 local BaseService = require "src.services.BaseService"
 local IoService = require "src.services.IoService"
 local MemoryService = require "src.services.MemoryService"
-local struct = require "libraries.struct"
+local ffi = require "ffi"
+require("src.cdefs.intbuilder")
+require("src.cdefs.floatbuilder")
+
+
+
+local intbuilder = ffi.new("intbuilder")
+local floatbuilder = ffi.new("doublebuilder")
 local copy = table.copy or function(tbl)
     local c = {}
 
@@ -14,20 +21,19 @@ local copy = table.copy or function(tbl)
     return c
 end
 
----@alias frametype {locals: vmdata_t[]}
 
 ---@class simplevm
----@field instructions integer[]?
+---@field instructions string?
 ---@field regs vmdata_t[] tamanho igual a 8
 ---@field retlocals integer[]
----@field frames frametype[]
----@field frame frametype
+---@field frames vmdata_t[][]
+---@field frame vmdata_t[]
 ---@field services BaseService[]
 ---@field service BaseService?
 ---@field index integer
----@field integersize 4 | 8
+---@field intsize 4 | 8
 ---@field floatsize 4 | 8
----@field flags table<string, boolean>
+---@field flags integer
 ---@field paused boolean
 local simplevm = {}
 
@@ -37,14 +43,13 @@ function simplevm:new()
         instructions = nil,
         regs = {nil, nil, nil, nil, nil, nil, nil, nil},
         retlocals = {},
-        frames = {{locals = {}}},
+        frames = {{}},
         services = {IoService, MemoryService},
         service = nil,
         index = 1,
-        integersize = 4,
+        intsize = 4,
         floatsize = 8,
-        flags = {equality = false, greater=false, less=false},
-        paused = false
+        flags = 0,
     }
     obj.frame = obj.frames[1]
     setmetatable(obj, {__index = self})
@@ -76,22 +81,15 @@ end
 function simplevm:start()
     --vai aguardar por uma instrucao de saida (EXIT)
     while true do
-        if self.paused then
-            return
-        end
+        local byte = self:consomeByte()
+        --print("byte", byte)
+        local action = Actions[byte]
         
-        self:exec()
+        action(self)
     end
 end
 
-function simplevm:pause()
-    self.paused = true
-end
 
-function simplevm:resume()
-    self.paused = false
-    self:start()
-end
 
 function simplevm:error(message)
     io.stderr:write(message .. "\n")
@@ -99,10 +97,7 @@ function simplevm:error(message)
 end
 
 function simplevm:currentByte()
-    if self.index > #self.instructions then
-        error("Instruction size finished ("..self.index.." > "..#self.instructions..")", 2)
-    end
-    return self.instructions[self.index]
+    return string.byte(self.instructions, self.index, self.index)
 end
 
 function simplevm:setIntegersize(n)
@@ -110,7 +105,12 @@ function simplevm:setIntegersize(n)
         error("Unknown integer size.")
     end
 
-    self.integersize = n
+    self.intsize = n
+    if n == 8 then
+        intbuilder = ffi.new("longbuilder")
+    else
+        intbuilder = ffi.new("intbuilder")
+    end
 end
 
 function simplevm:setFloatsize(n)
@@ -119,44 +119,41 @@ function simplevm:setFloatsize(n)
     end
 
     self.floatsize = n
-end
-
-function simplevm:exec()
-    local byte = self:consomeByte()
-    --print("byte", byte)
-    local action = Actions[byte]
-
-    action(self)
+    if n == 8 then
+        floatbuilder = ffi.new("doublebuilder")
+    else
+        floatbuilder = ffi.new("floatbuilder")
+    end
 end
 
 function simplevm:getint()
-    local bytes = {}
-
-    for i = 1, self.integersize do
-        bytes[i] = string.char(self:consomeByte())
+    
+    for i = 0, self.intsize - 1 do
+        intbuilder.bytes[i] = ffi.new("unsigned char", self:consomeByte())
     end
+    
 
-    return struct.unpack((self.integersize == 4) and ">i" or ">l", table.concat(bytes, ""))
+    return intbuilder.value
 end
 
 function simplevm:getfloat()
-    local bytes = {}
-
-    for i = 1, self.floatsize do
-        bytes[i] = string.char(self:consomeByte())
+    
+    for i = 0, self.floatsize - 1 do
+        floatbuilder.bytes[i] = ffi.new("unsigned char", self:consomeByte())
     end
-
-    return struct.unpack((self.floatsize == 4) and "f" or "d", table.concat(bytes, ""))
+    
+    
+    return floatbuilder.value
 end
 
 function simplevm:getstring()
-    local bytes = {}
-
+    local start = self.index
+    
     while self:currentByte() ~= 0 do
-        table.insert(bytes, string.char(self:consomeByte()))
+        self:consomeByte()
     end
 
-    local result = table.concat(bytes, "", 1, #bytes)
+    local result = string.sub(self.instructions, start, self.index)
 
     self:consomeByte()
 
@@ -169,7 +166,7 @@ function simplevm:assert(condition, message)
     end
 end
 function simplevm:consomeByte()
-    local b = self:currentByte()
+    local b = string.byte(self.instructions, self.index, self.index)
     self.index = self.index + 1
     return b
 end

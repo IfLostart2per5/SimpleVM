@@ -62,7 +62,7 @@ function linklabels(bytecode, intformat)
             error('attempt to use undefined label "'..name..'"')
         end
 
-        local packed = struct.pack((intformat == 4) and ">i" or ">l", index)
+        local packed = struct.pack((intformat == 4) and "i" or "l", index)
         for j = 1, intformat do
             linked[idx + j] = packed:byte(j, j)
             
@@ -83,6 +83,8 @@ function compile(bytecode)
                 for j = 1, #packed do
                     table.insert(compiled, packed:byte(j, j))
                 end
+
+                print("teste: ", struct.unpack("l", packed), struct.unpack(">l", packed))
             elseif byte.tag == "float" then
                 local n = byte[1]
                 local packed = struct.pack(byte.format, n)
@@ -109,14 +111,14 @@ function compile(bytecode)
         ::continue::
     end
 
-    for i, byte in ipairs(compiled) do
+    --[[for i, byte in ipairs(compiled) do
         io.write('['..i.."] ")
         if type(byte) == "table" then
             print(byte.tag.."{"..byte[1]..'}')
         else
             print(byte)
         end
-    end
+    end]]
     return compiled
 end
 
@@ -140,19 +142,21 @@ function read(input)
     local file, err = io.open(input, "rb")
     local version = ""
     if file then
-        local bytes = {}
+        
         local byte = file:read(1)
         for _ = 1, 6 do
             version = version .. byte
             byte = file:read(1)
         end
-        while byte do
-            table.insert(bytes, string.byte(byte))
-            byte = file:read(1)
+        local bytes
+        if byte then
+            bytes = byte .. file:read("*a")
         end
 
+        local size = file:seek("end") - 6
+
         file:close()
-        return version, bytes
+        return version, bytes, size
     end
 
     error("failed to open file: "..err)

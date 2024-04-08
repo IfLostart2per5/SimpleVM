@@ -37,37 +37,16 @@ end
 ---@param registers table<integer, vmdata_t?>?
 ---@return integer, string?
 function BaseService:invoke(opcode, args, registers)
-    local subsservice = self:getsubsservice(opcode)
+    local subsservice = self.subsservices[self.opcodes[opcode]]
 
-    
+    if not subsservice then
+        return 1, "Attempt to get a nil subsservice."
+    end
 
     local status, err = subsservice(self, args, registers)
 
     return status, err
 end
 
---Metodo auxiliar: BaseService:getsubsservice
---ele simplesmente returna um subserviço utilizando um opcode.
----@param opcode integer
----@return function
-function BaseService:getsubsservice(opcode)
-    local subsservice = self.subsservices[self.opcodes[opcode]]
-
-    if not subsservice then
-        self:error("Attempt to get a nil subsservice.")
-    end
-
-    return subsservice
-end
-
-
---Metodo auxiliar: BaseService:error
---simplesmente imprime um erro e encerra o programa
----@param message string
----@return nil
-function BaseService:error(message)
-    io.stderr:write(message)
-    os.exit(1)
-end
 
 return BaseService

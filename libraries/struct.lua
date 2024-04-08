@@ -20,8 +20,9 @@
  * THE SOFTWARE.
 ]]
 
+-- modificado para desempenho
 local unpack = table.unpack or _G.unpack
-
+local bit = require "bit"
 local struct = {}
 
 function struct.pack(format, ...)
@@ -58,7 +59,7 @@ function struct.pack(format, ...)
       if val < 0 then
         sign = 1
         val = -val
-      end
+      end 
 
       local mantissa, exponent = math.frexp(val)
       if val == 0 then
@@ -199,6 +200,190 @@ function struct.unpack(format, stream, pos)
   end
 
   return unpack(vars)
+end
+
+
+--------------------
+--funcoes proprias
+function struct.packint(number)
+  local val = number
+
+  local byte1, byte2, byte3, byte4
+  
+  byte1 = val % (2 ^ 8)  
+  val = math.floor(val / (2 ^ 8))
+  byte2 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte3 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte4 = val % (2 ^ 8)
+  
+
+  return byte4, byte3, byte2, byte1
+end
+
+function struct.packlong(number)
+  local val = number
+
+  local byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8
+  
+  byte1 = val % (2 ^ 8)  
+  val = math.floor(val / (2 ^ 8))
+  byte2 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte3 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte4 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte5 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte6 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte7 = val % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+  byte8 = val % (2 ^ 8)
+  
+
+  return byte8, byte7, byte6, byte5, byte4, byte3, byte2, byte1
+end
+
+function struct.packfloat(value)
+  local val = value
+  local sign = 0
+
+  if val < 0 then
+    sign = 1
+    val = -val
+  end 
+
+  local mantissa, exponent = math.frexp(val)
+  if val == 0 then
+    mantissa = 0
+    exponent = 0
+    return 0, 0, 0, 0
+  else
+    mantissa = (mantissa * 2 - 1) * math.ldexp(0.5, 24)
+    exponent = exponent + 126
+  end
+
+  local byte1, byte2, byte3, byte4
+  
+  byte1 = math.floor(mantissa) % (2 ^ 8)
+  val = math.floor(mantissa / (2 ^ 8))
+  byte2 = math.floor(val) % (2 ^ 8)
+  val = math.floor(val / (2 ^ 8))
+
+  byte3 = math.floor(exponent * 128 + val) % (2 ^ 8)
+  val = math.floor((exponent * 128 + val) / (2 ^ 8))
+  byte4 = math.floor(sign * 128 + val) % (2 ^ 8)
+  
+
+  return byte4, byte3, byte2, byte1
+end
+
+function struct.packdouble(number)
+  if number == 0 or number ~= number then
+    if number ~= number then
+      return 127, 248, 0, 0, 0, 0, 0, 0
+    end
+    return 0, 0, 0, 0, 0, 0, 0, 0
+  end
+  local signal = 0
+  if number < 0 then
+    signal = 1
+    number = -number
+  end
+
+  local mantissa, exponent = math.frexp(number)
+
+  print(exponent, mantissa)
+  local byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8
+
+  local num = bit.bor(bit.rshift(mantissa, 12), bit.bor(signal, bit.rshift(exponent + 1023, 1)))
+  byte1 = bit.band(num, bit.lshift(0xFF, 56))
+  byte2 = bit.band(num, bit.lshift(0xFF, 48))
+  byte3 = bit.band(num, bit.lshift(0xFF, 40))
+  byte4 = bit.band(num, bit.lshift(0xFF, 32))
+  byte5 = bit.band(num, bit.lshift(0xFF, 24))
+  byte6 = bit.band(num, bit.lshift(0xFF, 16))
+  byte7 = bit.band(num, bit.lshift(0xFF, 8))
+  byte8 = bit.band(num, 0xFF)
+  return byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8
+
+end
+
+function struct.unpackint(signed, byte1, byte2, byte3, byte4)
+    local n = 4
+    local val = ((byte1 * (2 ^ ((n - 1) * 8)))
+    + (byte2 * (2 ^ ((n - 2) * 8)))
+    + (byte3 * (2 ^ ((n - 3) * 8)))
+    + byte4)
+
+    if signed and val >= 2 ^ (n * 8 - 1) then
+        val = val - 2 ^ (n * 8)
+    end
+
+    return val
+end
+
+function struct.unpacklong(signed, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+  local n = 8
+  local val = ((byte1 * (2 ^ ((n - 1) * 8)))
+  + (byte2 * (2 ^ ((n - 2) * 8)))
+  + (byte3 * (2 ^ ((n - 3) * 8)))
+  + (byte4 * (2 ^ ((n - 4) * 8)))
+  + (byte5 * (2 ^ ((n - 5) * 8)))
+  + (byte6 * (2 ^ ((n - 6) * 8)))
+  + (byte7 * (2 ^ ((n - 7) * 8)))
+  + byte8)
+
+  if signed and val >= 2 ^ (n * 8 - 1) then
+      val = val - 2 ^ (n * 8)
+  end
+
+  return val
+end
+
+function struct.unpackfloat(byte1, byte2, byte3, byte4)
+  
+  local sign = 1
+  local mantissa = byte2 % 128
+  mantissa = mantissa * (2 ^ 8) + byte3
+  mantissa = mantissa * (2 ^ 8) + byte4
+  
+  
+
+  if byte1 > 127 then
+    sign = -1
+  end
+
+  local exponent = (byte1 % 128) * 2 + math.floor(byte2 / 128)
+  if exponent == 0 then
+    return 0.0
+  else
+    mantissa = (math.ldexp(mantissa, -23) + 1) * sign
+    return math.ldexp(mantissa, exponent - 127)
+  end
+end
+
+function struct.unpackdouble(byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8)
+  local signal = (bit.band(byte1, 0x80) == 0) and 1 or -1
+
+  local exponent = bit.bor(bit.band(byte1, 127), bit.rshift(bit.band(byte2, 224), 7)) - 1023
+  local mantissa = bit.bor(
+  bit.bor(
+    bit.bor(
+      bit.bor(
+        bit.bor(
+          bit.bor(bit.band(byte2, 31), bit.rshift(byte3, 5)),
+          bit.rshift(byte4, 13)),
+        bit.rshift(byte5, 21)),
+       bit.rshift(byte6, 29)),
+    bit.rshift(byte7, 37)),
+  bit.rshift(byte8, 45))
+
+  local result = signal * bit.lshift((math.ldexp(mantissa, -53) + 1), exponent)
+  return result
 end
 
 return struct

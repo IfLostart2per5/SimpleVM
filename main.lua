@@ -63,16 +63,17 @@ function run(file, intsize, floatsize)
     local vm = simplevm:new()
     vm:setIntegersize(intsize / 8)
     vm:setFloatsize(floatsize / 8)
-    local version, bytecode = compile.read(file)
+    local version, bytecode, size = compile.read(file)
     --[[
     do
-        for i, byte in ipairs(bytecode) do
-            print('['..i..']', byte)
+        for i = 1, size do
+            print('['..i..']', bytecode:byte(i, i))
         end
 
         return
     end
     ]]
+    
     if version ~= "svm0.1" then
         error("Unknown bytecode version.")
     end
