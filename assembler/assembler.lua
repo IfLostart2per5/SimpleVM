@@ -60,7 +60,7 @@ function Assembler:assemblypiece()
         local id = self:getrawid()
 
         if id == "usei64" then
-            self.intformat = ">l"
+            self.intformat = "l"
         elseif id == "usei32" then
             self.intformat = "i"
         elseif id == "usef32" then

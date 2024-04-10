@@ -133,7 +133,7 @@ function simplevm:getint()
     end
     
 
-    return intbuilder.value
+    return tonumber(intbuilder.value)
 end
 
 function simplevm:getfloat()
@@ -143,7 +143,7 @@ function simplevm:getfloat()
     end
     
     
-    return floatbuilder.value
+    return tonumber(floatbuilder.value)
 end
 
 function simplevm:getstring()

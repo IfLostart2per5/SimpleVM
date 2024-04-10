@@ -3,12 +3,12 @@ local ffi = require "ffi"
 ffi.cdef[[
     typedef union {
         unsigned char bytes[4];
-        int value;
+        int32_t value;
     } intbuilder;
 
     typedef union {
         unsigned char bytes[8];
-        long value;
+        int64_t value;
     } longbuilder;
 ]]
 
