@@ -5,13 +5,14 @@ Uma VM de propósito geral feita com LuaJIT
 Fazer uma plataforma de execução de código simples, veloz e fácil de entender, para assim executar praticamente qualquer código de maneira satisfatória.
 
 ## Exemplo
-Aqui tem um exemplo simples de assembly dessa VM (código antigo):
+Aqui tem um exemplo simples de assembly dessa VM:
 
 ```
 
 _start:
   call main
-  end
+  icopy_1 1
+  exit
 
 ; ele simplesmente adiciona o valor do registrador 1 e do registrador 2, armazena no registrador 1 e retorna
 somar:
