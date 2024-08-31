@@ -131,6 +131,8 @@ Code = {
   "FMOD_7",
   "FMOD_8",
 
+  -- NEG torna um numero positivo negativo, e um negativo positivo
+  "NEG",
 
   --Operadores relacionais: eles se baseiam nas flags de estado atuais da VM para passar o resultado pra um registrador
    "EQ_1",
@@ -258,8 +260,10 @@ Code = {
   --CALL redireciona o contexto atual para um dado ponto do codigo (geralmente um rotulo se fosse em assembly) ate encontrar uma instrucao RETURN, para assim ele redirecionar pro contexto que o chamou de volta
   "CALL",
   "RETURN",
-  -- DYNAMIC_CALL é uma instrucao especial que permite chamar um ponto do codigo conhecido somente na execução, do qual recebe como operando o registrador alvo (pra implementar por exemplo, funcoes de alta ordem)
-  "DYNAMIC_CALL",
+  -- LUA_CALL é uma instrucao especial que permite chamar uma função lua fornecida no ambiente de funções. Inicialmente parseia uma string, mas depois indexa por numero pra sair mais rapido
+  --    ela recebe um byte indicando se o estado da funcao é non-index-loaded ou index-loaded (normalmente estará num estado non-index-loaded, e a vm fará o trabalho de transformar em index-loaded dps), o nome em string ou o indice em inteiro dependendo do estado da função, e o numero de argumentos pra gerar um objeto argumento iteravel
+  "LUA_CALL",
+
   
   --Serviços:
   --  A simplevm oferece serviços para interagir com o SO, dos quais estao definidos e docuntados em src/services. para usa-los, primeiro use a instrucao LOADSERVICE, seguida do descritor de serviço, e entao,
