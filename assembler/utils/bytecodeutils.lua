@@ -1,7 +1,7 @@
 local struct = require "libraries.struct"
-
-function linklabels(bytecode, intformat)
-
+local Code = require "src.enums.Code"
+function linklabels(bytecode, intformat, env)
+    local externals = {}
     local labels = {}
     local labelrefs = {}
     local linked = {}
@@ -14,7 +14,7 @@ function linklabels(bytecode, intformat)
                 local name = byte[1]
 
                 if labels[name] then
-                    io.stderr:write("Attempt to redefine label '"..name.."'")
+                    io.stderr:write(("Attempt to redefine label '%s'"):format(name))
                 end
                 labels[name] = 1
                 nlabeldefs = nlabeldefs + 1
@@ -27,6 +27,16 @@ function linklabels(bytecode, intformat)
                 for j = 1, intformat do
                     table.insert(linked, 255)
                 end
+            elseif byte.tag == "external" then
+                local name = byte[1]
+                local index = env[name]
+                if not index then
+                    io.stderr:write(("Attempt to use an undeclared external label '%s'"):format(name))
+                end
+
+                externals[name] = index
+            elseif byte.tag == "extlabel" then
+                table.insert(linked, byte)
             end
 
             
@@ -47,6 +57,16 @@ function linklabels(bytecode, intformat)
                 
                 table.remove(linked, i)
                 size = size - 1
+            elseif byte.tag == "extlabel" then
+                local name = byte[1]
+                local idx = externals[name]
+                --print("de bytecodeutils:", name, idx)
+                local packed = struct.pack((intformat == 4) and "i" or "l", idx)
+                linked[i] = packed:byte(1,1)
+                for j = intformat, 2, -1 do
+                    table.insert(linked, i + 1, packed:byte(j,j))
+                end
+                size = size + 3
             end
         end
 
@@ -65,7 +85,6 @@ function linklabels(bytecode, intformat)
         local packed = struct.pack((intformat == 4) and "i" or "l", index)
         for j = 1, intformat do
             linked[idx + j] = packed:byte(j, j)
-            
         end
     end
     return linked
@@ -75,8 +94,10 @@ function compile(bytecode)
     local compiled = {}
     for i, byte in ipairs(bytecode) do
         if type(byte) == "table" then
-            
-            if byte.tag == "int" then
+            if byte.tag == "instruction" then
+                local opname = byte[1]
+                table.insert(compiled, Code[opname])
+            elseif byte.tag == "int" then
                 local n = byte[1]
                 local packed = struct.pack(byte.format, n)
 
@@ -84,7 +105,7 @@ function compile(bytecode)
                     table.insert(compiled, packed:byte(j, j))
                 end
 
-                print("teste: ", struct.unpack("l", packed), struct.unpack(">l", packed))
+                --print("teste: ", struct.unpack("l", packed), struct.unpack(">l", packed))
             elseif byte.tag == "float" then
                 local n = byte[1]
                 local packed = struct.pack(byte.format, n)
@@ -99,7 +120,7 @@ function compile(bytecode)
                 end
                 table.insert(compiled, 0)
             else
-                if byte.tag == "label" or byte.tag == "labeldef" then
+                if byte.tag == "label" or byte.tag == "labeldef" or byte.tag == "external" or byte.tag == "extlabel" then
                     table.insert(compiled, byte)
                     goto continue
                 end
