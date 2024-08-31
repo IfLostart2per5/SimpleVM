@@ -1,15 +1,136 @@
-changelog da simplevm
-nova versao: 0.0.2alfa
+em português:
+Nova versão:
+  0.0.2reestructured
 
-adições:
-  Um novo serviço de manipulação de memoria MemoryService;
-  novas instrucoes igetptr, fgetptr, sgetptr, isetptr, fsetptr e ssetptr;
+Sobre o assembler, temos:
 
-alterações:
-  alteração significativa nas instrucoes de comparação simples (agora elas dependem fortemente da instrucao compare)
+Ele foi completamente reestruturado pra ser um assembler mais decente, com pré-processamento de diretivas, análise léxica, analise sintática e geração de bytecode.
+A reestruturação ainda não está pronta, mas tô concluindo, se você, explorador de repositórios, quiser terminar e refatorar pra mim vou te amar do fundo do meu coração preguiçoso :)
+também suporta instruções do tipo "multiforma". tipo, loadservice e loadsvc dão na mesma coisa, ret e return dão na mesma coisa também, etc. aqui está a lista do que dá pra usar de multiforma:
 
-remoções:
-  remoçao da instrucao end (sera utilizada exit em seu lugar)
+loadservice, loadsvc = loadservice
+invokeservice, invokesvc = invokeservice
+ret, return = return
 
-nota:
-  exemplos de codigo assembly da VM serao reescritos.
+pouca coisa hehehe
+
+além disso, agora você pode usar as intrusções no modo "bonito", e o assembler converterá tranquilamente ao modo "feio" que a VM entende. Exemplo:
+
+antes:
+icopy_6 90
+
+agora:
+copy r6, 90
+e o assembler transformará no que era antes. E sim, agora os operandos são separados por vírgula heheheh
+
+
+também, ele suporta novas diretivas através do # (adeus .include T-T)
+por enquanto, só temos duas: o #include "arquivo" que copia e cola o arquivo indicado em seu local, e #entry[labelqualquer], que define um label genérico do tipo:
+
+#entry[main] = .start: call main
+
+ele bota isso no inicio do arquivo, não importando onde a diretiva foi usada
+
+
+
+Sobre as novas instruções, temos:
+
+luacall (substituindo dynamic_call): permite chamar funções lua externas declaradas numa instância da API, e trazidas pro código por meio da pseudoinstrução "externluaf".
+neg: inverte um número presente em um registrador. Tipo, se for um numero x, retorna -x nesse registrador, e se for um numero -x, retorna x nesse registrador
+compare: essa instrução já existia, mas foi reestruturada pra consumir um byte a mais no inicio que define o tipo dos operandos (o assembler deixa esse passo oculto, ele infere os tipos dos operandos e bota certinho la)
+externluaf (pseudoinstrução, não é adicionada no bytecode realmente): declara que uma dada função lua externa existe, pra poder usá-la
+é heheheaksaks
+exit: essa instrução também já existia, porém seu funcionamento foi alterado. Ao invés de invocar os.exit literal, ele para a VM através de um sistema de status lá.
+
+
+Sobre a nova bibilioteca:
+
+Sim, eu criei uma biblioteca de iteradores, bem básica, mas dá pro gasto.
+
+
+
+Sobre as alterações no arquivo Simplevm:
+
+adicionei os atributos:
+   env: uma lista de funções lua externas
+   api: uma referência (creio que seja circular, mas lua deixou) à API que falarei a seguir, pra usar internamente na instrução luacall.
+   status: o status retornado pela instrução exit
+   state: indicador se o fluxo de instruções da VM foi finalizado pela instrução exit ou não
+
+
+Sobre a nova API/ffi lua:
+
+é uma API que permite se comunicar com a VM usando lua, e vice-versa (o vice-versa só dá pra mexer com funções skaskaskas).
+ela encapsula o acesso à VM ao tornar o objeto bruto da VM um upvalue, o que ajuda a melhorar a segurança (não que dê pra só importar o src/Simplevm.lua e fazer o que quiser, mas quem gosta de segurança, a API tá ai).
+permite manipular os registradores da VM, e adicionar funções lua utilizáveis dentro do código, que devem receber dois argumentos:
+
+api - o objeto de API.
+args - um objeto iterador que fornece os argumentos, que segue o padrão de argumentos r2-r6, e a partir disso pega da pilha, do indíce 1 ao infinito (na realidade é até o número de argumentos fornecido na instrução luacall ksakskskak).
+
+por enquanto só isso :)
+
+in english:
+
+New Version:
+  0.0.2reestructured
+About the Assembler:
+
+The assembler has been completely restructured to be a more decent assembler, featuring pre-processing directives, lexical analysis, syntax analysis, and bytecode generation. The restructuring is not yet complete, but I'm finishing it up. If you, repository explorer, want to complete and refactor it for me, I will love you with all my lazy heart :) It also supports "multi-form" instructions. For example, loadservice and loadsvc are interchangeable, as are ret and return, etc. Here is the list of multi-form instructions you can use:
+
+    loadservice, loadsvc = loadservice
+    invokeservice, invokesvc = invokeservice
+    ret, return = return
+
+Just a few things hehehe
+
+Additionally, you can now use instructions in the "nice" mode, and the assembler will smoothly convert them to the "ugly" mode that the VM understands. Example:
+
+Before:
+icopy_6 90
+
+Now:
+copy r6, 90
+
+And the assembler will transform it into what it was before. Yes, now operands are separated by commas heheheh
+
+It also supports new directives through # (goodbye .include T-T). For now, we have two:
+
+    #include "file" which copies and pastes the indicated file into your location.
+
+    #entry[label], which defines a generic label of the type:
+    #entry[main] = .start: call main
+
+    It places this at the beginning of the file, regardless of where the directive was used.
+
+
+
+About New Instructions:
+
+    luacall (replacing dynamic_call): Allows calling external Lua functions declared in an API instance and brought into the code through the pseudoinstruction externluaf.
+    neg: Negates a number present in a register. For example, if the number is x, it returns -x in the register, and if it's -x, it returns x in the register.
+    compare: This instruction already existed but was restructured to consume an extra byte at the beginning that defines the operand types (the assembler hides this step, inferring operand types and placing them correctly).
+    externluaf (pseudoinstruction, not added to the bytecode): Declares that a given external Lua function exists so it can be used.
+    exit: This instruction also existed but its functionality was altered. Instead of invoking os.exit literally, it stops the VM through a status system.
+
+About the New Library:
+
+Yes, I created a basic iterator library, but it does the job.
+
+
+About Changes in Simplevm File:
+
+I added the following attributes:
+
+    env: A list of external Lua functions.
+    api: A reference (which I believe is circular, but Lua allowed it) to the API I'll discuss next, used internally in the luacall instruction.
+    status: The status returned by the exit instruction.
+    state: Indicates whether the VM's instruction flow was completed by the exit instruction or not.
+
+About the New Lua API/FFI:
+
+This API allows communication with the VM using Lua, and vice versa (though vice-versa only allows interaction with functions skaskaskas). It encapsulates access to the VM by making the raw VM object an upvalue, which helps enhance security (not that you can't just import src/Simplevm.lua and do whatever you want, but if you care about security, the API is there). It allows manipulation of VM registers and addition of Lua functions usable within the code, which must receive two arguments:
+
+    api - The API object.
+    args - An iterator object providing the arguments, following the r2-r6 pattern, and then taking from the stack from index 1 to infinity (actually up to the number of arguments provided in the luacall instruction ksakskskak).
+
+That's all for now :)
