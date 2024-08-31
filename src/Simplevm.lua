@@ -1,6 +1,5 @@
-local Code = require "src.enums.Code"
+
 local Actions = require "src.Actions"
-local BaseService = require "src.services.BaseService"
 local IoService = require "src.services.IoService"
 local MemoryService = require "src.services.MemoryService"
 local ffi = require "ffi"
@@ -33,23 +32,31 @@ end
 ---@field index integer
 ---@field intsize 4 | 8
 ---@field floatsize 4 | 8
+---@field state 1 | 0
+---@field status integer
 ---@field flags integer
 ---@field paused boolean
+---@field api any
+---@field env function[]
 local simplevm = {}
 
 ---@return simplevm
 function simplevm:new()
     local obj = {
         instructions = nil,
+        api = nil,
         regs = {nil, nil, nil, nil, nil, nil, nil, nil},
         retlocals = {},
         frames = {{}},
         services = {IoService, MemoryService},
         service = nil,
+        state = 0,
+        status = 0,
         index = 1,
         intsize = 4,
         floatsize = 8,
         flags = 0,
+        env = {}
     }
     obj.frame = obj.frames[1]
     setmetatable(obj, {__index = self})
@@ -57,35 +64,26 @@ function simplevm:new()
     return obj
 end
 
-function simplevm:getstate()
-    local state = {
-        registers=copy(self.regs),
-        service=self.service,
-        flags={equality=self.flags.equality},
-        instructionindex=self.index,
-        frames={}
-    }
-
-    for i, frame in ipairs(self.frames) do
-        table.insert(state.frames, {locals=copy(frame.locals)})
-    end
-
-    state.frame = state.frames[#state.frames]
-
-    return state
-end
 function simplevm:put(instructions)
     self.instructions = instructions
+end
+
+function simplevm:putapi(api)
+    self.api = api
 end
 
 function simplevm:start()
     --vai aguardar por uma instrucao de saida (EXIT)
     while true do
-        local byte = self:consomeByte()
+        local byte = string.byte(self.instructions, self.index, self.index)
+        self.index = self.index + 1
         --print("byte", byte)
         local action = Actions[byte]
         
         action(self)
+        if self.state == 1 then
+            return self.status
+        end
     end
 end
 
