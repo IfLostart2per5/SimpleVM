@@ -2,8 +2,8 @@
 local Code =  require "src.enums.Code"
 local bit = require "bit"
 local ffi = require "ffi"
-local utf8 = require "libraries.utf8"
-local struct = require "libraries.struct"
+
+
 
 local cases = {
     [Code.ICOPY_1] = function(self)
@@ -12,7 +12,6 @@ local cases = {
     end,
     [Code.ICOPY_2] = function(self)
       local value = self:getint()
-      
       self.regs[2] = value
     end,
     [Code.ICOPY_3] = function(self)
@@ -158,7 +157,7 @@ local cases = {
       self.regs[7] = self.regs[7] + self:getint()
     end,
     [Code.IADD_8] = function(self)
-      self.regs[4] = self.regs[4] + self:getint()
+      self.regs[8] = self.regs[8] + self:getint()
     end,
 
     [Code.FADD_1] = function(self)
@@ -409,154 +408,158 @@ local cases = {
     [Code.FMOD_8] = function(self)
       self.regs[8] = self.regs[8] % self:getfloat()
     end,
+    [Code.NEG] = function(self)
+      local reg =self:consomeByte()
+      self.regs[reg] = -self.regs[reg]
+    end,
     [Code.EQ_1] = function(self)
-      self.regs[1] = self.flags.equality and 1 or 0
+      self.regs[1] =  bit.band(self.flags, 1)
     end,
     [Code.EQ_2] = function(self)
-      self.regs[2] = self.flags.equality and 1 or 0
+      self.regs[2] = bit.band(self.flags, 1)
     end,
     [Code.EQ_3] = function(self)
-      self.regs[3] = self.flags.equality and 1 or 0
+      self.regs[3] = bit.band(self.flags, 1)
     end,
     [Code.EQ_4] = function(self)
-      self.regs[4] = self.flags.equality and 1 or 0
+      self.regs[4] = bit.band(self.flags, 1)
     end,
     [Code.EQ_5] = function(self)
-      self.regs[5] = self.flags.equality and 1 or 0
+      self.regs[5] = bit.band(self.flags, 1)
     end,
     [Code.EQ_6] = function(self)
-      self.regs[6] = self.flags.equality and 1 or 0
+      self.regs[6] = bit.band(self.flags, 1)
     end,
     [Code.EQ_7] = function(self)
-      self.regs[7] = self.flags.equality and 1 or 0
+      self.regs[7] = bit.band(self.flags, 1)
     end,
     [Code.EQ_8] = function(self)
-      self.regs[8] = self.flags.equality and 1 or 0
+      self.regs[8] = bit.band(self.flags, 1)
     end,
 
     [Code.NE_1] = function(self)
-      self.regs[1] = self.flags.equality and 0 or 1
+      self.regs[1] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_2] = function(self)
-      self.regs[2] = self.flags.equality and 0 or 1
+      self.regs[2] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_3] = function(self)
-      self.regs[3] = self.flags.equality and 0 or 1
+      self.regs[3] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_4] = function(self)
-      self.regs[4] = self.flags.equality and 0 or 1
+      self.regs[4] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_5] = function(self)
-      self.regs[5] = self.flags.equality and 0 or 1
+      self.regs[5] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_6] = function(self)
-      self.regs[6] = self.flags.equality and 0 or 1
+      self.regs[6] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_7] = function(self)
-      self.regs[7] = self.flags.equality and 0 or 1
+      self.regs[7] = bit.bnot(bit.band(self.flags, 1))
     end,
     [Code.NE_8] = function(self)
-      self.regs[8] = self.flags.equality and 0 or 1
+      self.regs[8] = bit.bnot(bit.band(self.flags, 1))
     end,
 
     [Code.GT_1] = function(self)
-      self.regs[1] = self.flags.greater and 1 or 0
+      self.regs[1] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_2] = function(self)
-      self.regs[2] = self.flags.greater and 1 or 0
+      self.regs[2] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_3] = function(self)
-      self.regs[3] = self.flags.greater and 1 or 0
+      self.regs[3] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_4] = function(self)
-      self.regs[4] = self.flags.greater and 1 or 0
+      self.regs[4] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_5] = function(self)
-      self.regs[5] = self.flags.greater and 1 or 0
+      self.regs[5] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_6] = function(self)
-      self.regs[6] = self.flags.greater and 1 or 0
+      self.regs[6] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_7] = function(self)
-      self.regs[7] = self.flags.greater and 1 or 0
+      self.regs[7] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
     [Code.GT_8] = function(self)
-      self.regs[1] = self.flags.greater and 1 or 0
+      self.regs[1] = bit.rshift(bit.band(self.flags, 2), 1)
     end,
 
     [Code.LT_1] = function(self)
-      self.regs[1] = self.flags.less and 1 or 0
+      self.regs[1] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_2] = function(self)
-      self.regs[2] = self.flags.less and 1 or 0
+      self.regs[2] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_3] = function(self)
-      self.regs[3] = self.flags.less and 1 or 0
+      self.regs[3] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_4] = function(self)
-      self.regs[4] = self.flags.less and 1 or 0
+      self.regs[4] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_5] = function(self)
-      self.regs[5] = self.flags.less and 1 or 0
+      self.regs[5] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_6] = function(self)
-      self.regs[6] = self.flags.less and 1 or 0
+      self.regs[6] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_7] = function(self)
-      self.regs[7] = self.flags.less and 1 or 0
+      self.regs[7] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
     [Code.LT_8] = function(self)
-      self.regs[1] = self.flags.less and 1 or 0
+      self.regs[1] = bit.rshift(bit.band(self.flags, 4), 2)
     end,
 
     [Code.GE_1] = function(self)
-      self.regs[1] = (self.greater or self.equality) and 1 or 0
+      self.regs[1] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_2] = function(self)
-      self.regs[2] = (self.greater or self.equality) and 1 or 0
+      self.regs[2] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_3] = function(self)
-      self.regs[3] = (self.greater or self.equality) and 1 or 0
+      self.regs[3] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_4] = function(self)
-      self.regs[4] = (self.greater or self.equality) and 1 or 0
+      self.regs[4] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_5] = function(self)
-      self.regs[5] = (self.greater or self.equality) and 1 or 0
+      self.regs[5] =bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_6] = function(self)
-      self.regs[6] = (self.greater or self.equality) and 1 or 0
+      self.regs[6] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_7] = function(self)
-      self.regs[7] = (self.greater or self.equality) and 1 or 0
+      self.regs[7] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
     [Code.GE_8] = function(self)
-      self.regs[8] = (self.greater or self.equality) and 1 or 0
+      self.regs[8] = bit.bor(bit.rshift(bit.band(self.flags, 2), 1), bit.band(self.flags, 1))
     end,
 
     [Code.LE_1] = function(self)
-      self.regs[1] = (self.less or self.equality) and 1 or 0
+      self.regs[1] = bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_2] = function(self)
-      self.regs[2] = (self.less or self.equality) and 1 or 0
+      self.regs[2] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_3] = function(self)
-      self.regs[3] = (self.less or self.equality) and 1 or 0
+      self.regs[3] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_4] = function(self)
-      self.regs[4] = (self.less or self.equality) and 1 or 0
+      self.regs[4] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_5] = function(self)
-      self.regs[5] = (self.less or self.equality) and 1 or 0
+      self.regs[5] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_6] = function(self)
-      self.regs[6] = (self.less or self.equality) and 1 or 0
+      self.regs[6] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_7] = function(self)
-      self.regs[7] = (self.less or self.equality) and 1 or 0
+      self.regs[7] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
     [Code.LE_8] = function(self)
-      self.regs[8] = (self.less or self.equality) and 1 or 0
+      self.regs[8] =  bit.bor(bit.rshift(bit.band(self.flags, 4), 2), bit.band(self.flags, 1))
     end,
 
     [Code.AND] = function(self)
@@ -628,28 +631,44 @@ local cases = {
     end,
     [Code.COMPARE] = function(self)
       -- resetando as flags pra evitar problemas
-      self.flags.equality = false
-      self.flags.greater = false
-      self.flags.less = false
+      self.flags = 0
+      local typ = self:consomeByte()
+      local a, b
+      if typ == 0 then -- register and register
       local x = self:consomeByte()
       local y = self:consomeByte()
 
-      local a = self.regs[x]
+      a = self.regs[x]
 
-      local b = self.regs[y]
-
+      b = self.regs[y]
+      elseif typ == 1 or typ == 2 or typ == 3 then -- register and (int|float|string)
+        local x = self:consomeByte()
+        a = self.regs[x]
+        b = typ == 1 and self:getint() or (typ == 2 and self:getfloat() or (typ == 3 and self:getstring() or nil))
+      elseif typ == 4 then -- int and int
+        a = self:getint()
+        b = self:getint()
+      elseif typ == 5 then -- float and float
+        a = self:getfloat()
+        b = self:getfloat()
+      elseif typ == 6 then -- string and string
+        a = self:getstring()
+        b = self:getstring()
+      else
+        self:error("Imcompatible brutal types")
+      end
       if type(a) == "string" or type(b) == "string" then
         a = #string
         b = #string
       end
-      local result = self.regs[x] - self.regs[y]
+      local result = a - b
 
       if result == 0 then
-        self.flags.equality = true
+        self.flags = 1
       elseif result > 0 then
-        self.flags.greater = true
+        self.flags = 2
       else
-        self.flags.less = true
+        self.flags = 4
       end
     end,
 
@@ -727,15 +746,35 @@ local cases = {
       self.index = value
       table.insert(self.retlocals, previousindex)
     end,
-    [Code.DYNAMIC_CALL] = function(self)
-      local reg = self:consomeByte()
-
-      local index = self.regs[reg]
-
-      self:assert(type(index) == "number", "Non-number point given to call.")
-      
-
-      self.index = math.floor(index)
+    [Code.LUA_CALL] = function(self)
+      local findex = self:getint()
+        local f = self.env[findex]
+        local nargs = self:getint()
+        local regindex = 2
+        local stackindex = 1
+        local idx = 0
+        local args = {
+          getnext = function(t)
+            if idx == nargs then
+              return false --a vm nao tem valores booleanos de fato, apenas numeros, entao ta tudo bem retornar um false pra indicar fim
+            end
+            local e
+            if regindex == 6 then
+              e = self.frame[stackindex]
+              stackindex = stackindex + 1
+              idx = idx + 1
+            else
+              e = self.regs[regindex]
+              regindex = regindex + 1
+              idx = idx + 1
+            end
+            return e
+          end
+        }
+        setmetatable(args, {
+          __call = args.getnext
+        })
+        f(self.api, args)
     end,
     [Code.RETURN] = function(self)
      
@@ -765,41 +804,43 @@ local cases = {
       local status = self.regs[1]
 
       --print('exitting', status)
-      os.exit(status)
+      self.state = 1 --finalized
+      self.status = status
     end,
     [Code.JUMP_IF_EQ] = function(self)
       local index = self:getint()
-      if self.flags.equality then
+      if bit.band(self.flags, 1) == 1 then
+        print("debug entered")
         self.index = index
       end
     end,
     [Code.JUMP_IF_LT] = function(self)
       local index = self:getint()
-      if self.flags.less then
+      if bit.band(self.flags, 2) == 2 then
         self.index = index
       end
     end,
     [Code.JUMP_IF_GT] = function(self)
       local index = self:getint()
-      if self.flags.greater then
+      if bit.band(self.flags, 4) == 4 then
         self.index = index
       end
     end,
     [Code.JUMP_IF_NEQ] = function(self)
       local index = self:getint()
-      if not self.flags.equality then
+      if bit.band(self.flags, 1) == 0 then
         self.index = index
       end
     end,
     [Code.JUMP_IF_NLT] = function(self)
       local index = self:getint()
-      if not self.flags.less then
+      if bit.band(self.flags, 2) == 0 then
         self.index = index
       end
     end,
     [Code.JUMP_IF_NGT] = function(self)
       local index = self:getint()
-      if not self.flags.greater then
+      if bit.band(self.flags, 4) == 0 then
         self.index = index
       end
     end,
