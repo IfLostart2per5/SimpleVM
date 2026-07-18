@@ -1,11 +1,11 @@
 # SimpleVM
-Uma VM de propósito geral feita com LuaJIT
+Uma VM (Virtual Machine) de propósito geral feita com LuaJIT.
 
 ## Objetivo
-Fazer uma plataforma de execução de código simples, veloz e fácil de entender, para assim executar praticamente qualquer código de maneira satisfatória.
+Fazer uma plataforma de execução de código simples, veloz e fácil de entender, para executar códigos de maneira satisfatória
 
 ## Exemplo
-Aqui tem um exemplo simples de assembly dessa VM:
+Um exemplo simples do assembly dessa VM:
 
 ```
 
@@ -14,7 +14,7 @@ _start:
   icopy_1 1
   exit
 
-; ele simplesmente adiciona o valor do registrador 1 e do registrador 2, armazena no registrador 1 e retorna
+; Simplesmente adiciona o valor do registrador 1 e do registrador 2, armazena no registrador 1 e retorna
 somar:
   add r1 r2
   return
@@ -25,7 +25,7 @@ main:
   icopy_2 3
   call somar ; chama o label somar
   
-  ; vamos imprimir o resultado!
+  ; Vamos imprimir o resultado!
   loadservice 1 ; carregamos o serviço de E/S da VM (IoService)
   copy r3 r1 ; copia o resultado da soma do registrador 1 para o registrador 3 (aqui será o conteúdo a ser escrito)
   icopy_1 2 ; indica o subsserviço a ser utilizado (nesse caso, write)
@@ -34,4 +34,4 @@ main:
   return
 ```
 
-Mais exemplos podem ser vistos [aqui](./examples)
+Mais exemplos podem ser vistos [aqui](./examples).
